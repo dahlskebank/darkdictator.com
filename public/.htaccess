@@ -1,0 +1,97 @@
+# ─── Dark Dictator — Apache config ────────────────────────────────
+# Served from dist/ by Laragon (local) and the production Apache vhost.
+# This is a static SPA — React Router is not used; all routes render
+# index.html and the client handles state. Unknown URLs should 404.
+
+# ─── Error documents ──────────────────────────────────────────────
+ErrorDocument 404 /404.html
+ErrorDocument 403 /403.html
+
+# ─── Baseline ─────────────────────────────────────────────────────
+Options -Indexes
+ServerSignature Off
+AddDefaultCharset UTF-8
+FileETag None
+
+# Protect .htaccess itself
+<Files .htaccess>
+	<IfModule mod_authz_core.c>
+		Require all denied
+	</IfModule>
+</Files>
+
+# ─── Block TRACE / TRACK ─────────────────────────────────────────
+<IfModule mod_rewrite.c>
+	RewriteEngine On
+	RewriteCond %{REQUEST_METHOD} ^(TRACE|TRACK)
+	RewriteRule .* - [F]
+</IfModule>
+
+# ─── Block common query-string injection ─────────────────────────
+<IfModule mod_rewrite.c>
+	RewriteEngine On
+	RewriteBase /
+	RewriteCond %{QUERY_STRING} (\"|%22).*(<|>|%3) [NC,OR]
+	RewriteCond %{QUERY_STRING} (javascript:).*(\;) [NC,OR]
+	RewriteCond %{QUERY_STRING} (<|%3C).*script.*(>|%3) [NC,OR]
+	RewriteCond %{QUERY_STRING} (\;|'|\"|%22).*(union|select|insert|drop|update|md5|benchmark) [NC,OR]
+	RewriteCond %{QUERY_STRING} (base64_encode|localhost) [NC,OR]
+	RewriteCond %{QUERY_STRING} (boot\.ini|etc/passwd) [NC,OR]
+	RewriteCond %{QUERY_STRING} (GLOBALS|REQUEST)(=|\[|%) [NC]
+	RewriteRule .* - [F]
+</IfModule>
+
+# ─── Block suspicious file extensions ────────────────────────────
+<IfModule mod_alias.c>
+	RedirectMatch 403 (eval\(|base64_encode|proc/self/environ)
+	RedirectMatch 403 \.(exe|dll|mdb|sql|ini|rar|cfg)$
+</IfModule>
+
+# ─── MIME types ──────────────────────────────────────────────────
+AddType image/svg+xml svg svgz
+AddType image/webp webp
+AddType image/x-icon ico
+AddType application/manifest+json webmanifest
+AddType font/woff2 woff2
+
+# ─── HTTPS redirect (enable when production cert is installed) ───
+# <IfModule mod_rewrite.c>
+# 	RewriteEngine On
+# 	RewriteCond %{HTTPS} off
+# 	RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
+# </IfModule>
+
+# ─── Security headers ────────────────────────────────────────────
+<IfModule mod_headers.c>
+	Header set X-Content-Type-Options "nosniff"
+	Header set X-Frame-Options "SAMEORIGIN"
+	Header set Referrer-Policy "strict-origin-when-cross-origin"
+	Header set Permissions-Policy "camera=(), microphone=(), geolocation=()"
+	# CSP: React built to static JS + Google Fonts (VT323) + Google Analytics
+	# (when added). No inline scripts, no eval. Adjust if adding new origins.
+	Header set Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' https://*.googletagmanager.com https://*.google-analytics.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https://*.google-analytics.com https://*.googletagmanager.com; connect-src 'self' https://*.google-analytics.com https://*.analytics.google.com https://*.googletagmanager.com; frame-ancestors 'self'; base-uri 'self'; form-action 'self'"
+</IfModule>
+
+# ─── Gzip compression ────────────────────────────────────────────
+<IfModule mod_deflate.c>
+	AddOutputFilterByType DEFLATE text/html text/css text/plain text/xml
+	AddOutputFilterByType DEFLATE application/javascript application/json
+	AddOutputFilterByType DEFLATE application/xml application/manifest+json
+	AddOutputFilterByType DEFLATE image/svg+xml
+</IfModule>
+
+# ─── Browser cache ───────────────────────────────────────────────
+<IfModule mod_expires.c>
+	ExpiresActive On
+	ExpiresByType text/html "access plus 0 seconds"
+	ExpiresByType text/css "access plus 1 year"
+	ExpiresByType application/javascript "access plus 1 year"
+	ExpiresByType image/jpeg "access plus 1 year"
+	ExpiresByType image/png "access plus 1 year"
+	ExpiresByType image/webp "access plus 1 year"
+	ExpiresByType image/svg+xml "access plus 1 year"
+	ExpiresByType image/x-icon "access plus 1 year"
+	ExpiresByType font/woff2 "access plus 1 year"
+	ExpiresByType font/woff "access plus 1 year"
+	ExpiresByType application/manifest+json "access plus 1 week"
+</IfModule>

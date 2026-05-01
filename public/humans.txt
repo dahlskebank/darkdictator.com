@@ -1,0 +1,21 @@
+/* TEAM */
+	Warehouse leader by day, web developer by passion: Daniel Dahl
+	Site: https://danieldahl.com
+	Network hub: https://dfault.it
+	Blog: https://dahlskebank.com
+	Corporate: https://dxd.no
+	Location: Norway
+
+/* SITE */
+	Name: Dark Dictator // State Network
+	URL: https://darkdictator.com
+	Stack: React 19, Vite 8, Web Audio API, VT323
+	Style: CRT terminal — scanlines, phosphor, the works
+	Voice: in-universe dystopian bureaucracy
+	References seeded in the copy: 1984, Equilibrium, Gattaca,
+		Minority Report, RoboCop, Demolition Man, Fahrenheit 451,
+		THX 1138, The Running Man
+
+/* NOTES */
+	License: WTFPL
+	All compliance is assumed unless revoked.

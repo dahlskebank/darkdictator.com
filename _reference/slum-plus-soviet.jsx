@@ -1,0 +1,779 @@
+import { useState, useEffect, useRef, useCallback } from "react";
+
+// ─── Audio Engine ───────────────────────────────────────────
+const AudioCtx = window.AudioContext || window.webkitAudioContext;
+let audioCtx = null;
+const getCtx = () => {
+	if (!audioCtx) audioCtx = new AudioCtx();
+	return audioCtx;
+};
+
+const playClick = () => {
+	const ctx = getCtx();
+	const t = ctx.currentTime;
+	const osc = ctx.createOscillator();
+	const gain = ctx.createGain();
+	const noise = ctx.createOscillator();
+	const noiseGain = ctx.createGain();
+
+	osc.type = "square";
+	osc.frequency.setValueAtTime(1800, t);
+	osc.frequency.exponentialRampToValueAtTime(400, t + 0.04);
+	gain.gain.setValueAtTime(0.15, t);
+	gain.gain.exponentialRampToValueAtTime(0.001, t + 0.06);
+	osc.connect(gain).connect(ctx.destination);
+	osc.start(t);
+	osc.stop(t + 0.06);
+
+	noise.type = "sawtooth";
+	noise.frequency.setValueAtTime(120, t);
+	noiseGain.gain.setValueAtTime(0.08, t);
+	noiseGain.gain.exponentialRampToValueAtTime(0.001, t + 0.03);
+	noise.connect(noiseGain).connect(ctx.destination);
+	noise.start(t);
+	noise.stop(t + 0.03);
+};
+
+const playClank = () => {
+	const ctx = getCtx();
+	const t = ctx.currentTime;
+	const osc = ctx.createOscillator();
+	const gain = ctx.createGain();
+	const osc2 = ctx.createOscillator();
+	const gain2 = ctx.createGain();
+
+	osc.type = "square";
+	osc.frequency.setValueAtTime(90, t);
+	osc.frequency.exponentialRampToValueAtTime(40, t + 0.12);
+	gain.gain.setValueAtTime(0.2, t);
+	gain.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
+	osc.connect(gain).connect(ctx.destination);
+	osc.start(t);
+	osc.stop(t + 0.15);
+
+	osc2.type = "triangle";
+	osc2.frequency.setValueAtTime(2400, t);
+	osc2.frequency.exponentialRampToValueAtTime(200, t + 0.02);
+	gain2.gain.setValueAtTime(0.12, t);
+	gain2.gain.exponentialRampToValueAtTime(0.001, t + 0.05);
+	osc2.connect(gain2).connect(ctx.destination);
+	osc2.start(t);
+	osc2.stop(t + 0.05);
+};
+
+const playBoot = () => {
+	const ctx = getCtx();
+	const t = ctx.currentTime;
+	[0, 0.08, 0.16, 0.28].forEach((offset, i) => {
+		const osc = ctx.createOscillator();
+		const gain = ctx.createGain();
+		osc.type = "square";
+		osc.frequency.setValueAtTime([200, 300, 400, 800][i], t + offset);
+		gain.gain.setValueAtTime(0.06, t + offset);
+		gain.gain.exponentialRampToValueAtTime(0.001, t + offset + 0.07);
+		osc.connect(gain).connect(ctx.destination);
+		osc.start(t + offset);
+		osc.stop(t + offset + 0.07);
+	});
+};
+
+const playDeny = () => {
+	const ctx = getCtx();
+	const t = ctx.currentTime;
+	const osc = ctx.createOscillator();
+	const gain = ctx.createGain();
+	osc.type = "square";
+	osc.frequency.setValueAtTime(150, t);
+	osc.frequency.setValueAtTime(100, t + 0.12);
+	gain.gain.setValueAtTime(0.15, t);
+	gain.gain.exponentialRampToValueAtTime(0.001, t + 0.3);
+	osc.connect(gain).connect(ctx.destination);
+	osc.start(t);
+	osc.stop(t + 0.3);
+};
+
+// ─── Data ───────────────────────────────────────────────────
+const HAMMER_SICKLE = `
+    ┌─────────────┐
+    │   ☭  CCCP   │
+    └─────────────┘`;
+
+const SLUM_LOGO = `
+ ╔══════════════════════════════════════════════╗
+ ║  ███████╗██╗     ██╗   ██╗███╗   ███╗  ╔╗   ║
+ ║  ██╔════╝██║     ██║   ██║████╗ ████║  ║║   ║
+ ║  ███████╗██║     ██║   ██║██╔████╔██║ ╔╝╚╗  ║
+ ║  ╚════██║██║     ██║   ██║██║╚██╔╝██║ ╚╗╔╝  ║
+ ║  ███████║███████╗╚██████╔╝██║ ╚═╝ ██║  ║║   ║
+ ║  ╚══════╝╚══════╝ ╚═════╝ ╚═╝     ╚═╝  ╚╝   ║
+ ╚══════════════════════════════════════════════╝`;
+
+const SECTIONS = [
+	{
+		id: "home",
+		title: "ГЛАВНАЯ СТРАНИЦА // HJEMMESIDE",
+		shortTitle: "[1] HJEM",
+	},
+	{
+		id: "about",
+		title: "О ПРОГРАММЕ // OM PROGRAMMET",
+		shortTitle: "[2] OM OSS",
+	},
+	{
+		id: "program",
+		title: "ПРОГРАММА РАЗВИТИЯ // UTVIKLINGSPROGRAM",
+		shortTitle: "[3] PROGRAM",
+	},
+	{
+		id: "contact",
+		title: "КОНТАКТ // KONTAKT",
+		shortTitle: "[4] KONTAKT",
+	},
+	{
+		id: "glory",
+		title: "СЛАВА НАРОДУ // ÆRE TIL FOLKET",
+		shortTitle: "[5] ÆRE",
+	},
+];
+
+// ─── Components ─────────────────────────────────────────────
+const Blinker = () => {
+	const [on, setOn] = useState(true);
+	useEffect(() => {
+		const i = setInterval(() => setOn((p) => !p), 530);
+		return () => clearInterval(i);
+	}, []);
+	return <span style={{ opacity: on ? 1 : 0 }}>█</span>;
+};
+
+const TypeWriter = ({ text, speed = 25, onDone }) => {
+	const [displayed, setDisplayed] = useState("");
+	const idx = useRef(0);
+	useEffect(() => {
+		idx.current = 0;
+		setDisplayed("");
+		const i = setInterval(() => {
+			if (idx.current < text.length) {
+				setDisplayed(text.slice(0, idx.current + 1));
+				idx.current++;
+				if (idx.current % 3 === 0) playClick();
+			} else {
+				clearInterval(i);
+				onDone?.();
+			}
+		}, speed);
+		return () => clearInterval(i);
+	}, [text]);
+	return (
+		<span>
+			{displayed}
+			{displayed.length < text.length && <Blinker />}
+		</span>
+	);
+};
+
+const Divider = () => (
+	<div style={{ color: "var(--green-dim)", margin: "4px 0", fontSize: 11, letterSpacing: 2, userSelect: "none" }}>
+		{"═".repeat(56)}
+	</div>
+);
+
+const Star = () => <span style={{ color: "var(--green-bright)", fontSize: 10 }}>★</span>;
+
+// ─── Page Content ───────────────────────────────────────────
+const HomeContent = () => (
+	<div>
+		<pre style={{ color: "var(--green-bright)", fontSize: 10, lineHeight: 1.2, margin: "8px 0" }}>{SLUM_LOGO}</pre>
+		<Divider />
+		<p style={{ margin: "8px 0" }}>
+			<Star /> VELKOMMEN TIL DEN OFFISIELLE SLUM+ TERMINALEN <Star />
+		</p>
+		<p style={{ color: "var(--green-dim)", margin: "6px 0", fontSize: 12 }}>
+			ДОБРО ПОЖАЛОВАТЬ В ОФИЦИАЛЬНЫЙ ТЕРМИНАЛ СЛУМ+
+		</p>
+		<Divider />
+		<p style={{ margin: "8px 0", lineHeight: 1.6 }}>
+			Slum+ er det statsgodkjente programmet for kulturell berikelse av folket. Gjennom kollektivt samarbeid og
+			urokkelig dedikasjon til fellesskapet, leverer vi underholdning som styrker nasjonens ånd.
+		</p>
+		<p style={{ margin: "8px 0", lineHeight: 1.6, color: "var(--green-mid)" }}>
+			«Den som kontrollerer musikken, kontrollerer sjelen til folket.» — Kulturdepartementet, Direktiv №42
+		</p>
+		<Divider />
+		<div style={{ display: "flex", gap: 16, margin: "8px 0", fontSize: 11, color: "var(--green-dim)" }}>
+			<span>BRUKERE TILKOBLET: 14.891</span>
+			<span>│</span>
+			<span>STATUS: OPERATIV</span>
+			<span>│</span>
+			<span>OPPETID: 847 DAGER</span>
+		</div>
+	</div>
+);
+
+const AboutContent = () => (
+	<div>
+		<pre style={{ color: "var(--green-mid)", fontSize: 11, margin: "4px 0" }}>{HAMMER_SICKLE}</pre>
+		<Divider />
+		<p style={{ margin: "8px 0", lineHeight: 1.6 }}>
+			SLUM+ ble etablert ved Folkerådsdekretet av 1983 som det offisielle organet for distribusjon av godkjent
+			kulturelt innhold til arbeidende masser.
+		</p>
+		<div style={{ border: "1px solid var(--green-dim)", padding: "8px 12px", margin: "10px 0" }}>
+			<p style={{ color: "var(--green-bright)", margin: "0 0 4px" }}>┌─ GODKJENTE AKTIVITETER ─────────────┐</p>
+			<p style={{ margin: "2px 0", color: "var(--green-mid)" }}>
+				│ • Kollektiv musikkopplevelse &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│
+			</p>
+			<p style={{ margin: "2px 0", color: "var(--green-mid)" }}>
+				│ • Statsgodkjent dans
+				&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│
+			</p>
+			<p style={{ margin: "2px 0", color: "var(--green-mid)" }}>
+				│ • Ideologisk kulturformidling &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│
+			</p>
+			<p style={{ margin: "2px 0", color: "var(--green-mid)" }}>
+				│ • Frivillig arbeidsinnsats &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│
+			</p>
+			<p style={{ color: "var(--green-bright)", margin: "4px 0 0" }}>└─────────────────────────────────────┘</p>
+		</div>
+		<p style={{ fontSize: 11, color: "var(--green-dim)", margin: "8px 0" }}>
+			ADVARSEL: Uautorisert tilgang til dette systemet er straffbart i henhold til § 47b i Folkeloven.
+		</p>
+	</div>
+);
+
+const ProgramContent = () => (
+	<div>
+		<p style={{ color: "var(--green-bright)", margin: "4px 0" }}>╔═══ KOMMENDE ARRANGEMENTER ═══╗</p>
+		<Divider />
+		{[
+			{
+				date: "15.MAI.1986",
+				event: "KOLLEKTIV LYDOPPLEVELSE NR. 47",
+				loc: "FOLKETS HUS, SAL B",
+				status: "GODKJENT",
+			},
+			{ date: "22.MAI.1986", event: "PATRIOTISK DANSEKVELD", loc: "KULTURPALASSET", status: "GODKJENT" },
+			{ date: "01.JUN.1986", event: "SOMMERENS ARBEIDERFEIRING", loc: "FOLKETS PARK", status: "UNDER VURDERING" },
+			{ date: "14.JUN.1986", event: "ELEKTRONISK FREMTIDSMUSIKK", loc: "LABORATORIUM 9", status: "KLASSIFISERT" },
+		].map((e, i) => (
+			<div key={i} style={{ border: "1px solid var(--green-dim)", padding: "6px 10px", margin: "6px 0" }}>
+				<div style={{ display: "flex", justifyContent: "space-between", fontSize: 11 }}>
+					<span style={{ color: "var(--green-bright)" }}>{e.date}</span>
+					<span
+						style={{
+							color: e.status === "KLASSIFISERT" ? "var(--green-bright)" : "var(--green-dim)",
+							...(e.status === "KLASSIFISERT" && { animation: "pulse 1.5s infinite" }),
+						}}
+					>
+						[{e.status}]
+					</span>
+				</div>
+				<p style={{ margin: "3px 0 1px", color: "var(--green)" }}>{e.event}</p>
+				<p style={{ margin: "1px 0", fontSize: 11, color: "var(--green-dim)" }}>LOK: {e.loc}</p>
+			</div>
+		))}
+		<p style={{ fontSize: 11, color: "var(--green-dim)", margin: "8px 0" }}>
+			MERK: Alle arrangementer krever gyldig kulturpass (Skjema K-12). Søknad sendes til nærmeste partikontors
+			kulturseksjon.
+		</p>
+	</div>
+);
+
+const ContactContent = () => {
+	const [submitted, setSubmitted] = useState(false);
+	return (
+		<div>
+			<p style={{ color: "var(--green-bright)", margin: "4px 0" }}>┌─── KOMMUNIKASJONSKANAL ───┐</p>
+			<Divider />
+			<p style={{ margin: "8px 0", lineHeight: 1.6 }}>
+				For henvendelser, benytt det offisielle skjemaet nedenfor. Alle meldinger blir registrert og arkivert av
+				Kulturdepartementet.
+			</p>
+			<div style={{ border: "1px solid var(--green-dim)", padding: "10px", margin: "8px 0" }}>
+				<p style={{ margin: "0 0 4px", fontSize: 11, color: "var(--green-dim)" }}>
+					AVSENDER-ID: _______________
+				</p>
+				<p style={{ margin: "0 0 4px", fontSize: 11, color: "var(--green-dim)" }}>
+					EMNE: ______________________
+				</p>
+				<p style={{ margin: "0 0 4px", fontSize: 11, color: "var(--green-dim)" }}>
+					MELDING: ____________________
+				</p>
+				<p style={{ margin: "0 0 4px", fontSize: 11, color: "var(--green-dim)" }}>
+					____________________________
+				</p>
+			</div>
+			{!submitted ? (
+				<button
+					onClick={() => {
+						playClank();
+						setSubmitted(true);
+					}}
+					onFocus={playClick}
+					tabIndex={0}
+					className="soviet-btn"
+					style={{
+						background: "none",
+						border: "2px solid var(--green)",
+						color: "var(--green-bright)",
+						padding: "6px 20px",
+						fontFamily: "inherit",
+						fontSize: 13,
+						cursor: "pointer",
+						marginTop: 4,
+					}}
+				>
+					► SEND MELDING [ENTER]
+				</button>
+			) : (
+				<div
+					style={{
+						color: "var(--green-bright)",
+						margin: "8px 0",
+						padding: "6px 10px",
+						border: "1px solid var(--green-bright)",
+					}}
+				>
+					<Star /> MELDING MOTTATT. DIN HENVENDELSE ER REGISTRERT UNDER SAK NR.{" "}
+					{Math.floor(Math.random() * 90000 + 10000)}. FORVENTET BEHANDLINGSTID: 6-18 MÅNEDER.
+				</div>
+			)}
+			<p style={{ fontSize: 10, color: "var(--green-dim)", margin: "10px 0 0" }}>
+				MERK: Denne kommunikasjonskanalen er overvåket i henhold til Sikkerhetsdirektiv §12.
+			</p>
+		</div>
+	);
+};
+
+const GloryContent = () => (
+	<div>
+		<pre
+			style={{
+				color: "var(--green-bright)",
+				fontSize: 11,
+				lineHeight: 1.3,
+				margin: "4px 0",
+				textAlign: "center",
+			}}
+		>
+			{`
+        ★  ★  ★  ★  ★
+      ★              ★
+    ★    ☭  SLUM+  ☭   ★
+      ★              ★
+        ★  ★  ★  ★  ★
+`}
+		</pre>
+		<Divider />
+		<div style={{ textAlign: "center", margin: "8px 0" }}>
+			<p style={{ color: "var(--green-bright)", fontSize: 14, margin: "6px 0" }}>«GJENNOM MUSIKK, STYRKE.</p>
+			<p style={{ color: "var(--green-bright)", fontSize: 14, margin: "6px 0" }}>GJENNOM FELLESSKAP, SEIER.»</p>
+		</div>
+		<Divider />
+		<p style={{ margin: "8px 0", lineHeight: 1.6, color: "var(--green-mid)" }}>
+			Слум+ является гордостью нашего народа. Через коллективное творчество мы строим светлое будущее для всех
+			трудящихся.
+		</p>
+		<Divider />
+		<div style={{ textAlign: "center", margin: "10px 0" }}>
+			<p style={{ fontSize: 11, color: "var(--green-dim)" }}>DETTE SYSTEMET ER DEDIKERT TIL FOLKET</p>
+			<p style={{ fontSize: 11, color: "var(--green-dim)" }}>OG DEN EVIGE FREMGANGEN TIL SLUM+</p>
+			<p style={{ fontSize: 10, color: "var(--green-dim)", marginTop: 10 }}>▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓</p>
+			<p style={{ fontSize: 10, color: "var(--green-dim)" }}>SYSTEM VERSJON 2.41 — BYGGET PÅ LINUX 0.01</p>
+			<p style={{ fontSize: 10, color: "var(--green-dim)" }}>SENTRALKOMITÉEN FOR DIGITAL KULTUR © 1986</p>
+		</div>
+	</div>
+);
+
+const CONTENT_MAP = {
+	home: HomeContent,
+	about: AboutContent,
+	program: ProgramContent,
+	contact: ContactContent,
+	glory: GloryContent,
+};
+
+// ─── Boot Sequence ──────────────────────────────────────────
+const BootSequence = ({ onDone }) => {
+	const [lines, setLines] = useState([]);
+	const bootLines = [
+		"ИНИЦИАЛИЗАЦИЯ СИСТЕМЫ...",
+		"BIOS v1.04 — НАРОДНЫЙ МИКРОПРОЦЕССОР «ЭЛЬБРУС-2»",
+		"RAM CHECK: 256KB .............. OK",
+		"ПРОВЕРКА ДИСКОВ: A:\\ .......... OK",
+		"LADNING AV KULTURDEPARTEMENTETS PROTOKOLL...",
+		"KOBLER TIL STATSNETTET (ГОССЕТЬ)............",
+		"SIKKERHETSKONTROLL: AUTORISASJON BEKREFTET",
+		"ВЕЛКОМ ТИЛ СЛУМ+ ТЕРМИНАЛ v2.41",
+		"",
+		"TILGANG INNVILGET. TRYKK EN TAST FOR Å FORTSETTE.",
+	];
+
+	useEffect(() => {
+		let i = 0;
+		playBoot();
+		const interval = setInterval(() => {
+			if (i < bootLines.length) {
+				setLines((prev) => [...prev, bootLines[i]]);
+				if (i % 2 === 0) playClick();
+				i++;
+			} else {
+				clearInterval(interval);
+				setTimeout(onDone, 1200);
+			}
+		}, 320);
+		return () => clearInterval(interval);
+	}, []);
+
+	return (
+		<div style={{ padding: 16 }}>
+			{lines.map((l, i) => (
+				<div
+					key={i}
+					style={{
+						color: i === lines.length - 1 ? "var(--green-bright)" : "var(--green-dim)",
+						fontSize: 12,
+						lineHeight: 1.8,
+						fontFamily: "'VT323', monospace",
+					}}
+				>
+					{l}
+				</div>
+			))}
+			<Blinker />
+		</div>
+	);
+};
+
+// ─── Main App ───────────────────────────────────────────────
+export default function SovietTerminal() {
+	const [booted, setBooted] = useState(false);
+	const [activeSection, setActiveSection] = useState("home");
+	const [focusIdx, setFocusIdx] = useState(0);
+	const [showContent, setShowContent] = useState(false);
+	const [scanlineOffset, setScanlineOffset] = useState(0);
+	const navRefs = useRef([]);
+	const containerRef = useRef(null);
+
+	useEffect(() => {
+		const i = setInterval(() => setScanlineOffset((p) => (p + 1) % 4), 80);
+		return () => clearInterval(i);
+	}, []);
+
+	const navigate = useCallback((id, idx) => {
+		playClank();
+		setShowContent(false);
+		setActiveSection(id);
+		setFocusIdx(idx);
+		setTimeout(() => setShowContent(true), 100);
+	}, []);
+
+	useEffect(() => {
+		if (!booted) return;
+		const handler = (e) => {
+			if (e.key >= "1" && e.key <= "5") {
+				const idx = parseInt(e.key) - 1;
+				navigate(SECTIONS[idx].id, idx);
+				navRefs.current[idx]?.focus();
+				e.preventDefault();
+			}
+			if (e.key === "ArrowUp" || e.key === "ArrowLeft") {
+				const next = (focusIdx - 1 + SECTIONS.length) % SECTIONS.length;
+				playClick();
+				setFocusIdx(next);
+				navRefs.current[next]?.focus();
+				e.preventDefault();
+			}
+			if (e.key === "ArrowDown" || e.key === "ArrowRight") {
+				const next = (focusIdx + 1) % SECTIONS.length;
+				playClick();
+				setFocusIdx(next);
+				navRefs.current[next]?.focus();
+				e.preventDefault();
+			}
+			if (e.key === "Enter") {
+				navigate(SECTIONS[focusIdx].id, focusIdx);
+				e.preventDefault();
+			}
+		};
+		window.addEventListener("keydown", handler);
+		return () => window.removeEventListener("keydown", handler);
+	}, [booted, focusIdx, navigate]);
+
+	useEffect(() => {
+		if (booted) {
+			setTimeout(() => setShowContent(true), 300);
+			navRefs.current[0]?.focus();
+		}
+	}, [booted]);
+
+	const ContentComponent = CONTENT_MAP[activeSection];
+
+	return (
+		<>
+			<style>{`
+        @import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
+
+        :root {
+          --green-bright: #33ff33;
+          --green: #22cc22;
+          --green-mid: #1a9a1a;
+          --green-dim: #0d660d;
+          --green-dark: #062806;
+          --bg: #020a02;
+          --glow: rgba(51, 255, 51, 0.15);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        @keyframes pulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.3; }
+        }
+
+        @keyframes flicker {
+          0% { opacity: 0.97; }
+          5% { opacity: 0.95; }
+          10% { opacity: 0.98; }
+          15% { opacity: 0.94; }
+          20% { opacity: 0.98; }
+          50% { opacity: 0.96; }
+          80% { opacity: 0.98; }
+          90% { opacity: 0.95; }
+          100% { opacity: 0.97; }
+        }
+
+        @keyframes bootGlow {
+          from { text-shadow: 0 0 4px var(--green); }
+          to { text-shadow: 0 0 12px var(--green-bright), 0 0 24px var(--green); }
+        }
+
+        .crt-container {
+          width: 100%;
+          min-height: 100vh;
+          background: var(--bg);
+          font-family: 'VT323', monospace;
+          color: var(--green);
+          font-size: 14px;
+          position: relative;
+          overflow: hidden;
+          animation: flicker 0.15s infinite;
+        }
+
+        .crt-container::before {
+          content: '';
+          position: fixed;
+          top: 0; left: 0; right: 0; bottom: 0;
+          background: repeating-linear-gradient(
+            0deg,
+            rgba(0, 0, 0, 0.15) 0px,
+            rgba(0, 0, 0, 0.15) 1px,
+            transparent 1px,
+            transparent 3px
+          );
+          pointer-events: none;
+          z-index: 100;
+        }
+
+        .crt-container::after {
+          content: '';
+          position: fixed;
+          top: 0; left: 0; right: 0; bottom: 0;
+          background: radial-gradient(ellipse at center, transparent 60%, rgba(0,0,0,0.5) 100%);
+          pointer-events: none;
+          z-index: 101;
+        }
+
+        .screen-content {
+          position: relative;
+          z-index: 10;
+          max-width: 640px;
+          margin: 0 auto;
+          padding: 8px 12px;
+        }
+
+        .top-bar {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 6px 0;
+          border-bottom: 2px double var(--green-dim);
+          margin-bottom: 4px;
+          font-size: 11px;
+          color: var(--green-dim);
+        }
+
+        .nav-bar {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 2px;
+          padding: 4px 0;
+          border-bottom: 1px solid var(--green-dark);
+          margin-bottom: 6px;
+        }
+
+        .nav-item {
+          background: none;
+          border: 1px solid var(--green-dark);
+          color: var(--green-dim);
+          font-family: 'VT323', monospace;
+          font-size: 13px;
+          padding: 3px 10px;
+          cursor: pointer;
+          transition: all 0.05s;
+          outline: none;
+          flex: 1;
+          text-align: center;
+          min-width: 0;
+        }
+
+        .nav-item:hover,
+        .nav-item:focus {
+          background: var(--green-dark);
+          color: var(--green-bright);
+          border-color: var(--green);
+          text-shadow: 0 0 8px var(--green);
+          box-shadow: 0 0 6px var(--glow), inset 0 0 6px var(--glow);
+        }
+
+        .nav-item.active {
+          background: var(--green-dim);
+          color: #000;
+          border-color: var(--green);
+          font-weight: bold;
+        }
+
+        .nav-item.active:focus {
+          color: #000;
+          text-shadow: none;
+        }
+
+        .content-area {
+          border: 1px solid var(--green-dim);
+          padding: 10px 14px;
+          min-height: 300px;
+          position: relative;
+          background: rgba(0, 20, 0, 0.3);
+        }
+
+        .content-header {
+          color: var(--green-bright);
+          font-size: 15px;
+          padding-bottom: 4px;
+          border-bottom: 1px solid var(--green-dark);
+          margin-bottom: 8px;
+          text-shadow: 0 0 8px var(--green);
+          letter-spacing: 1px;
+        }
+
+        .footer-bar {
+          display: flex;
+          justify-content: space-between;
+          flex-wrap: wrap;
+          gap: 4px;
+          padding: 6px 0;
+          border-top: 2px double var(--green-dim);
+          margin-top: 6px;
+          font-size: 10px;
+          color: var(--green-dim);
+        }
+
+        .soviet-btn:hover,
+        .soviet-btn:focus {
+          background: var(--green-dark) !important;
+          text-shadow: 0 0 8px var(--green);
+          box-shadow: 0 0 8px var(--glow);
+          outline: none;
+        }
+
+        .fade-in {
+          animation: fadeIn 0.3s ease-in;
+        }
+
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+
+        .phosphor-trail {
+          text-shadow: 0 0 3px var(--green), 0 0 6px rgba(51, 255, 51, 0.3);
+        }
+      `}</style>
+
+			<div className="crt-container" ref={containerRef} tabIndex={-1}>
+				<div className="screen-content">
+					{!booted ? (
+						<BootSequence
+							onDone={() => {
+								setBooted(true);
+								playClank();
+							}}
+						/>
+					) : (
+						<div className="fade-in">
+							{/* Top Status Bar */}
+							<div className="top-bar">
+								<span>☭ SLUM+ TERMINAL v2.41</span>
+								<span>ГОССЕТЬ NODE 7</span>
+								<span>
+									{new Date().toLocaleTimeString("nb-NO", { hour: "2-digit", minute: "2-digit" })} MSK
+								</span>
+							</div>
+
+							{/* Navigation */}
+							<nav className="nav-bar" role="menubar" aria-label="Hovednavigasjon">
+								{SECTIONS.map((s, i) => (
+									<button
+										key={s.id}
+										ref={(el) => (navRefs.current[i] = el)}
+										className={`nav-item ${activeSection === s.id ? "active" : ""}`}
+										role="menuitem"
+										tabIndex={focusIdx === i ? 0 : -1}
+										onClick={() => navigate(s.id, i)}
+										onFocus={() => {
+											playClick();
+											setFocusIdx(i);
+										}}
+										aria-current={activeSection === s.id ? "page" : undefined}
+									>
+										{s.shortTitle}
+									</button>
+								))}
+							</nav>
+
+							{/* Content */}
+							<div className="content-area">
+								<div className="content-header phosphor-trail">
+									{SECTIONS.find((s) => s.id === activeSection)?.title}
+								</div>
+								{showContent && (
+									<div className="fade-in phosphor-trail">
+										<ContentComponent />
+									</div>
+								)}
+							</div>
+
+							{/* Footer */}
+							<div className="footer-bar">
+								<span>PILTASTER: NAVIGER</span>
+								<span>1-5: HURTIGVALG</span>
+								<span>ENTER: VELG</span>
+								<span>KLASSIFISERT</span>
+							</div>
+							<div
+								style={{
+									textAlign: "center",
+									fontSize: 9,
+									color: "var(--green-dark)",
+									padding: "4px 0",
+								}}
+							>
+								SENTRALKOMITÉEN FOR DIGITAL KULTUR — ALLE RETTIGHETER TILHØRER FOLKET — 1983
+							</div>
+						</div>
+					)}
+				</div>
+			</div>
+		</>
+	);
+}

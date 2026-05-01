@@ -1,0 +1,1383 @@
+:root {
+	--green-bright: #33ff33;
+	--green: #22cc22;
+	--green-mid: #1a9a1a;
+	--green-dim: #1a9a1a;
+	--green-dark: #062806;
+	--bg: #020a02;
+	--glow: rgba(51, 255, 51, 0.15);
+	--red: #ff3333;
+	--red-dim: #aa1111;
+	--red-glow: rgba(255, 51, 51, 0.35);
+}
+
+* {
+	box-sizing: border-box;
+	margin: 0;
+	padding: 0;
+}
+html,
+body {
+	background: var(--bg);
+	color: var(--green);
+	overflow-x: hidden;
+}
+
+/* Text selection — green inverse, no glow, fully readable. */
+::selection {
+	background: var(--green-bright);
+	color: #000;
+	text-shadow: none;
+}
+::-moz-selection {
+	background: var(--green-bright);
+	color: #000;
+	text-shadow: none;
+}
+.crt-container.red-mode ::selection {
+	background: var(--red);
+	color: #000;
+	text-shadow: none;
+}
+.crt-container.red-mode ::-moz-selection {
+	background: var(--red);
+	color: #000;
+	text-shadow: none;
+}
+
+@keyframes pulse {
+	0%,
+	100% {
+		opacity: 1;
+	}
+	50% {
+		opacity: 0.3;
+	}
+}
+
+@keyframes bootGlow {
+	from {
+		text-shadow: 0 0 4px var(--green);
+	}
+	to {
+		text-shadow:
+			0 0 12px var(--green-bright),
+			0 0 24px var(--green);
+	}
+}
+
+.crt-monitor {
+	min-height: 100vh;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: radial-gradient(ellipse at center, #1a1612 0%, #050302 80%);
+	padding: 40px 24px;
+}
+
+.crt-housing {
+	position: relative;
+	width: 100%;
+	max-width: 980px;
+	background:
+		url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.3' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.22 0'/%3E%3C/filter%3E%3Crect width='240' height='240' filter='url(%23n)'/%3E%3C/svg%3E"),
+		linear-gradient(145deg, #2a323e 0%, #1c232e 45%, #0f1319 100%);
+	background-blend-mode: screen, normal;
+	border-radius: 34px 34px 28px 28px;
+	padding: 48px 48px 96px;
+	box-shadow:
+		0 40px 80px rgba(0, 0, 0, 0.9),
+		0 0 0 1px rgba(0, 0, 0, 0.6),
+		inset 0 3px 0 rgba(255, 255, 255, 0.08),
+		inset 0 -4px 8px rgba(0, 0, 0, 0.55),
+		inset 4px 0 8px rgba(0, 0, 0, 0.3),
+		inset -4px 0 8px rgba(0, 0, 0, 0.3);
+}
+
+.crt-screen-frame {
+	position: relative;
+	background: #000;
+	padding: 16px;
+	border-radius: 38px / 24px;
+	box-shadow:
+		inset 0 0 48px rgba(0, 0, 0, 0.95),
+		inset 0 0 8px rgba(0, 0, 0, 1),
+		0 1px 0 rgba(255, 255, 255, 0.1),
+		0 -1px 0 rgba(0, 0, 0, 0.3);
+	overflow: hidden;
+	transform: perspective(1800px) rotateX(2.2deg);
+	transform-origin: center top;
+}
+
+.crt-screen-frame::after {
+	content: "";
+	position: absolute;
+	top: 16px;
+	left: 16px;
+	right: 16px;
+	height: 50%;
+	background: linear-gradient(180deg, rgba(255, 255, 255, 0.07) 0%, rgba(255, 255, 255, 0.02) 40%, transparent 100%);
+	border-radius: 22px 22px 120px 120px / 16px 16px 70px 70px;
+	pointer-events: none;
+	z-index: 150;
+	mix-blend-mode: screen;
+}
+
+/* The label on the bezel — printed-plastic look, not phosphor. Now carries
+   the network self-links (dB / dD / dxD / DFp). Stays in Courier on purpose
+   so it reads as "injection-molded label", distinct from the screen text. */
+.crt-label {
+	position: absolute;
+	bottom: 32px;
+	left: 50%;
+	transform: translateX(-50%);
+	display: flex;
+	gap: 6px;
+	align-items: center;
+	color: #8a96a8;
+	font-family: "Courier New", monospace;
+	font-size: 13px;
+	letter-spacing: 2px;
+	text-shadow: 0 1px 0 rgba(0, 0, 0, 0.6);
+	user-select: none;
+	white-space: nowrap;
+}
+.crt-label a {
+	color: #5a6472;
+	text-decoration: none;
+	letter-spacing: 2px;
+	padding: 0 2px;
+	transition: color 0.1s;
+}
+.crt-label a:hover,
+.crt-label a:focus {
+	color: #b0bccf;
+	outline: none;
+}
+.crt-label-sep,
+.crt-label-bracket {
+	color: #5a6472;
+}
+
+.crt-led {
+	position: absolute;
+	bottom: 32px;
+	right: 68px;
+	width: 14px;
+	height: 14px;
+	padding: 0;
+	border: none;
+	background: radial-gradient(circle at 30% 30%, #8cff8c 0%, #22cc22 45%, #0a4a0a 95%);
+	border-radius: 50%;
+	box-shadow:
+		0 0 12px rgba(51, 255, 51, 0.7),
+		inset 0 -1px 2px rgba(0, 0, 0, 0.35);
+	animation: ledPulse 2.4s ease-in-out infinite;
+	cursor: pointer;
+	outline: none;
+	transition:
+		transform 0.1s,
+		box-shadow 0.1s;
+}
+.crt-led:hover {
+	transform: scale(1.15);
+	box-shadow:
+		0 0 18px rgba(51, 255, 51, 0.95),
+		inset 0 -1px 2px rgba(0, 0, 0, 0.35);
+}
+.crt-led:active {
+	background: radial-gradient(circle at 30% 30%, #ffd080 0%, #cc8822 45%, #4a2a0a 95%);
+	box-shadow:
+		0 0 18px rgba(255, 180, 80, 0.9),
+		inset 0 -1px 2px rgba(0, 0, 0, 0.35);
+	transform: scale(0.95);
+}
+.crt-led:focus-visible {
+	outline: 2px solid rgba(51, 255, 51, 0.8);
+	outline-offset: 3px;
+}
+
+@keyframes ledPulse {
+	0%,
+	100% {
+		opacity: 1;
+	}
+	50% {
+		opacity: 0.55;
+	}
+}
+
+.crt-container {
+	width: 100%;
+	aspect-ratio: 4 / 3;
+	max-height: calc(100vh - 280px);
+	background: var(--bg);
+	font-family: "VT323", monospace;
+	color: var(--green);
+	font-size: 21px;
+	position: relative;
+	overflow: hidden;
+	border-radius: 28px / 18px;
+
+	/* Phosphor-green pixel-arrow cursor for the whole terminal. Hotspot at tip (1,1). */
+	cursor:
+		url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='20'%3E%3Cpath d='M1 1 L1 14 L4 11 L7 17 L9 16 L6 10 L11 10 Z' fill='%2333ff33' stroke='%23000000' stroke-width='1' stroke-linejoin='miter'/%3E%3C/svg%3E")
+			1 1,
+		default;
+}
+
+/* Clickable elements get a chunky green block — like the cursor itself. Hotspot center. */
+.crt-container button,
+.crt-container [role="menuitem"],
+.crt-container .crt-led {
+	cursor:
+		url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16'%3E%3Crect x='4' y='2' width='8' height='12' fill='%2333ff33' stroke='%23000000' stroke-width='1'/%3E%3C/svg%3E")
+			8 8,
+		pointer;
+}
+
+/* Red mode swaps cursors to red. */
+.crt-container.red-mode {
+	cursor:
+		url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='20'%3E%3Cpath d='M1 1 L1 14 L4 11 L7 17 L9 16 L6 10 L11 10 Z' fill='%23ff3333' stroke='%23000000' stroke-width='1' stroke-linejoin='miter'/%3E%3C/svg%3E")
+			1 1,
+		default;
+}
+.crt-container.red-mode button {
+	cursor:
+		url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16'%3E%3Crect x='4' y='2' width='8' height='12' fill='%23ff3333' stroke='%23000000' stroke-width='1'/%3E%3C/svg%3E")
+			8 8,
+		pointer;
+}
+
+.crt-container::before {
+	content: "";
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background: repeating-linear-gradient(
+		0deg,
+		rgba(0, 0, 0, 0.22) 0px,
+		rgba(0, 0, 0, 0.22) 1px,
+		rgba(51, 255, 51, 0.04) 1px,
+		rgba(51, 255, 51, 0.04) 3px
+	);
+	pointer-events: none;
+	z-index: 100;
+}
+
+/* Asymmetric vignette — slightly darker top/bottom than sides,
+   mimicking the vertical bulge of a CRT tube. */
+.crt-container::after {
+	content: "";
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background: radial-gradient(
+		ellipse 100% 75% at center,
+		transparent 35%,
+		rgba(0, 0, 0, 0.55) 82%,
+		rgba(0, 0, 0, 0.9) 100%
+	);
+	pointer-events: none;
+	z-index: 101;
+}
+
+@keyframes crtRoll {
+	0% {
+		top: -25%;
+	}
+	100% {
+		top: 110%;
+	}
+}
+
+.crt-roll {
+	content: "";
+	position: absolute;
+	left: 0;
+	right: 0;
+	top: -25%;
+	height: 18%;
+	background: linear-gradient(
+		to bottom,
+		transparent 0%,
+		rgba(51, 255, 51, 0.04) 40%,
+		rgba(51, 255, 51, 0.1) 50%,
+		rgba(51, 255, 51, 0.04) 60%,
+		transparent 100%
+	);
+	pointer-events: none;
+	z-index: 102;
+	animation: crtRoll 8s linear infinite;
+	will-change: top;
+}
+
+/* RGB shadow mask — the phosphor sub-pixel pattern of a real CRT */
+.crt-mask {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='3' height='3'%3E%3Crect width='1' height='3' fill='%23ff0000'/%3E%3Crect x='1' width='1' height='3' fill='%2300ff00'/%3E%3Crect x='2' width='1' height='3' fill='%230000ff'/%3E%3C/svg%3E");
+	background-size: 3px 3px;
+	background-repeat: repeat;
+	mix-blend-mode: multiply;
+	opacity: 0.05;
+	pointer-events: none;
+	z-index: 103;
+	image-rendering: pixelated;
+}
+
+/* Animated signal static — shifts position to simulate signal instability */
+.crt-noise {
+	position: absolute;
+	top: -50%;
+	left: -50%;
+	width: 200%;
+	height: 200%;
+	background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='2.5' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.2  0 0 0 0 1  0 0 0 0 0.2  0 0 0 0.9 0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E");
+	mix-blend-mode: screen;
+	opacity: 0.06;
+	pointer-events: none;
+	z-index: 104;
+	animation: noiseShift 2.2s steps(5) infinite;
+}
+
+@keyframes noiseShift {
+	0% {
+		transform: translate(0, 0);
+	}
+	20% {
+		transform: translate(-15%, 8%);
+	}
+	40% {
+		transform: translate(10%, -12%);
+	}
+	60% {
+		transform: translate(-8%, -5%);
+	}
+	80% {
+		transform: translate(5%, 10%);
+	}
+	100% {
+		transform: translate(0, 0);
+	}
+}
+
+.screen-content {
+	position: relative;
+	z-index: 10;
+	max-width: 960px;
+	margin: 0 auto;
+	padding: 12px 18px;
+	height: 100%;
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
+}
+
+/* Top-bar, nav, footer, copyright all lock in place; only .content-area scrolls. */
+.booted-layout {
+	display: flex;
+	flex-direction: column;
+	height: 100%;
+	min-height: 0;
+}
+.booted-layout > .top-bar,
+.booted-layout > .nav-bar,
+.booted-layout > .footer-bar,
+.booted-layout > .protocol-zero-row,
+.booted-layout > .copyright-bar {
+	flex-shrink: 0;
+}
+.booted-layout > .content-area {
+	flex: 1;
+	min-height: 0;
+	overflow-y: auto;
+	scrollbar-width: thin;
+	scrollbar-color: var(--green-dim) transparent;
+}
+/* Kill the default browser focus ring on the scrollable content surface
+   and the CRT container — both can receive focus via tabIndex / keyboard
+   scroll, and the white outline breaks the green CRT illusion. */
+.content-area:focus,
+.content-area:focus-visible,
+.crt-container:focus,
+.crt-container:focus-visible {
+	outline: none;
+}
+.booted-layout > .content-area::-webkit-scrollbar {
+	width: 8px;
+}
+.booted-layout > .content-area::-webkit-scrollbar-track {
+	background: rgba(0, 20, 0, 0.3);
+}
+.booted-layout > .content-area::-webkit-scrollbar-thumb {
+	background: var(--green-dim);
+	border-radius: 2px;
+}
+.booted-layout > .content-area::-webkit-scrollbar-thumb:hover {
+	background: var(--green);
+}
+
+/* Intrusion panel and boot sequence scroll internally if content exceeds height. */
+.intrusion-panel,
+.boot-scroll {
+	height: 100%;
+	overflow-y: auto;
+}
+
+/* Boot sequence */
+.boot-sequence {
+	padding: 16px;
+}
+.boot-line {
+	font-size: 17px;
+	color: var(--green);
+	line-height: 1.5;
+}
+
+/* Divider — repeated ═ row used between sections */
+.divider {
+	color: var(--green-dim);
+	margin: 8px 0;
+	letter-spacing: 2px;
+	user-select: none;
+}
+
+/* SYSTEM page */
+.system-intro {
+	white-space: pre-line;
+	color: var(--green-bright);
+	font-size: 18px;
+	line-height: 1.4;
+	margin: 8px 0;
+}
+.system-status {
+	color: var(--green-bright);
+	margin: 8px 0;
+	font-size: 16px;
+}
+.system-warning {
+	margin: 8px 0;
+	line-height: 1.6;
+}
+.system-status-header {
+	margin: 8px 0;
+	color: var(--green-bright);
+}
+.stats-block {
+	margin: 8px 0 4px;
+}
+.stat-row {
+	display: flex;
+	line-height: 1.6;
+}
+.stat-label {
+	color: var(--green-mid);
+	flex: 0 0 280px;
+}
+.stats-note {
+	color: var(--green-mid);
+	font-size: 17px;
+	margin: 6px 0;
+}
+.system-closing {
+	white-space: pre-line;
+	color: var(--green-bright);
+	margin: 6px 0;
+	line-height: 1.5;
+}
+/* Phase 1 / caught-memory — the system "raises its voice slightly".
+   Not flashing or red, just a nudge in weight. */
+.system-closing--loud {
+	color: #aaffaa;
+	text-shadow: 0 0 4px var(--green);
+}
+
+/* Shared section header / preamble — Records, Transmissions, Compliance, Directives */
+.section-header {
+	color: var(--green-bright);
+	margin: 4px 0;
+}
+.section-preamble {
+	color: var(--green-mid);
+	font-size: 17px;
+	margin: 6px 0;
+	line-height: 1.5;
+}
+
+/* DIRECTIVES extras */
+.directive-redacted {
+	color: var(--green-dark);
+	letter-spacing: 1px;
+	margin: 4px 0;
+	user-select: none;
+}
+.entry-body {
+	margin: 4px 0;
+	line-height: 1.5;
+}
+.status-row {
+	margin-top: 6px;
+}
+.status-active {
+	color: var(--green-bright);
+}
+.status-inactive {
+	color: var(--green-mid);
+}
+
+/* COMPLIANCE form */
+.compliance-forced {
+	color: var(--green-bright);
+	border: 1px dashed var(--green);
+	padding: 8px 12px;
+	margin: 8px 0;
+	line-height: 1.5;
+}
+.compliance-preamble {
+	margin: 8px 0;
+	line-height: 1.55;
+}
+.compliance-prompt {
+	margin: 8px 0;
+	color: var(--green-bright);
+}
+.compliance-submitted {
+	border: 1px solid var(--green-bright);
+	padding: 10px 14px;
+	margin: 10px 0;
+	color: var(--green-bright);
+}
+.compliance-submitted-line1 {
+	margin-bottom: 6px;
+}
+.compliance-submitted-line {
+	margin: 4px 0;
+}
+.compliance-submitted-status {
+	margin: 8px 0;
+	color: var(--green);
+}
+.compliance-submitted-body {
+	margin: 8px 0;
+	color: var(--green-mid);
+	line-height: 1.5;
+}
+.compliance-repeats {
+	margin-top: 12px;
+}
+.compliance-repeat {
+	margin: 4px 0;
+}
+
+/* Copyright bar at bottom of booted layout */
+.copyright-bar {
+	text-align: center;
+	font-size: 14px;
+	color: var(--green-mid);
+	padding: 6px 0;
+}
+/* "1984" in the copyright is a hidden trigger — clicking it opens the
+   secret page (mobile/desktop parity with the keyboard trigger).
+   Styled to blend into the copyright line so it reads as plain text. */
+/* "1984" in the copyright bar is a hidden long-press twin of the ◉ brand
+   icon — same contract, same ramp-up feel, no hover affordance that would
+   give it away. See the longPressTarget handling in App.jsx. */
+.copyright-year {
+	background: none;
+	border: none;
+	font: inherit;
+	color: inherit;
+	padding: 0;
+	margin: 0;
+	cursor: inherit;
+	letter-spacing: inherit;
+	transition: color 0.2s ease, text-shadow 0.2s ease;
+	-webkit-touch-callout: none;
+	-webkit-user-select: none;
+	user-select: none;
+}
+.copyright-year--pressing {
+	color: var(--green-bright);
+	text-shadow: 0 0 4px var(--green), 0 0 10px var(--glow);
+}
+
+/* Intrusion panel extras */
+.intrusion-preamble {
+	line-height: 1.5;
+}
+.intrusion-line.empty {
+	min-height: 1em;
+}
+.intrusion-list {
+	margin-top: 4px;
+}
+.intrusion-list-item {
+	margin: 8px 0;
+	line-height: 1.45;
+}
+
+.top-bar {
+	display: grid;
+	grid-template-columns: 1fr auto 1fr;
+	align-items: center;
+	padding: 9px 0;
+	border-bottom: 2px double var(--green-dim);
+	margin-bottom: 6px;
+	font-size: 17px;
+	color: var(--green-dim);
+}
+
+/* ◉ brand dot is secretly pressable — long-press (~1.8s) opens the
+   intrusion. On desktop it looks identical; on mobile it's the only way in.
+   The press state ramps brightness + glow so the user gets tactile
+   feedback that something is happening, without announcing what. */
+.brand-icon {
+	display: inline-block;
+	cursor: inherit;
+	color: var(--green-dim);
+	transition: color 0.2s ease, text-shadow 0.2s ease, transform 0.2s ease;
+	/* Block the iOS long-press callout (copy / share) which would
+	   otherwise appear and interrupt the hold. */
+	-webkit-touch-callout: none;
+	-webkit-user-select: none;
+	user-select: none;
+}
+.brand-icon--pressing {
+	color: var(--green-bright);
+	text-shadow: 0 0 4px var(--green), 0 0 10px var(--glow);
+	animation: brandPress 1.8s linear forwards;
+}
+@keyframes brandPress {
+	0%   { transform: scale(1);    filter: brightness(1); }
+	100% { transform: scale(1.25); filter: brightness(1.6); }
+}
+.top-bar > :first-child {
+	justify-self: start;
+}
+.top-bar > :nth-child(2) {
+	justify-self: center;
+}
+.top-bar > :last-child {
+	justify-self: end;
+}
+
+.nav-bar {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 3px;
+	padding: 6px 0;
+	border-bottom: 1px solid var(--green-dark);
+	margin-bottom: 9px;
+}
+
+.nav-item {
+	background: none;
+	border: 1px solid var(--green-dark);
+	color: var(--green-dim);
+	font-family: "VT323", monospace;
+	font-size: 20px;
+	padding: 5px 15px;
+	cursor: pointer;
+	transition: all 0.05s;
+	outline: none;
+	flex: 1;
+	text-align: center;
+	min-width: 0;
+}
+
+.nav-item:hover,
+.nav-item:focus {
+	background: var(--green-dark);
+	color: var(--green-bright);
+	border-color: var(--green);
+	text-shadow: 0 0 8px var(--green);
+	box-shadow:
+		0 0 6px var(--glow),
+		inset 0 0 6px var(--glow);
+}
+
+.nav-item.active {
+	background: var(--green-dim);
+	color: #000;
+	border-color: var(--green);
+	font-weight: bold;
+}
+
+.nav-item.active:focus {
+	color: #000;
+	text-shadow: none;
+}
+
+.content-area {
+	border: 1px solid var(--green-dim);
+	padding: 15px 21px;
+	min-height: 450px;
+	position: relative;
+	background: rgba(0, 20, 0, 0.3);
+	/* Scrollable containers get a focus ring on click in Chrome — ruins the
+	   bezel illusion. Nav buttons have their own :focus styles so removing
+	   the ring here doesn't hurt keyboard users. */
+	outline: none;
+}
+
+.content-header {
+	color: var(--green-bright);
+	font-size: 22px;
+	padding-bottom: 6px;
+	border-bottom: 1px solid var(--green-dark);
+	margin-bottom: 12px;
+	text-shadow: 0 0 8px var(--green);
+	letter-spacing: 1px;
+}
+
+.footer-bar {
+	display: flex;
+	justify-content: space-between;
+	flex-wrap: wrap;
+	gap: 6px;
+	padding: 9px 0;
+	border-top: 2px double var(--green-dim);
+	margin-top: 9px;
+	font-size: 15px;
+	color: var(--green-dim);
+}
+
+.compliance-btn {
+	background: none;
+	border: 2px solid var(--green);
+	color: var(--green-bright);
+	padding: 6px 20px;
+	font-family: inherit;
+	font-size: 16px;
+	cursor: pointer;
+	margin-top: 4px;
+}
+.compliance-btn:hover,
+.compliance-btn:focus {
+	background: var(--green-dark);
+	text-shadow: 0 0 8px var(--green);
+	box-shadow: 0 0 8px var(--glow);
+	outline: none;
+}
+.compliance-btn.disabled {
+	color: var(--green-dim);
+	border-color: var(--green-dim);
+	/* Custom pixel cursor — dim-green block with a diagonal slash — so the
+	   disabled state doesn't pop a bright red OS "not-allowed" icon that
+	   would break the CRT illusion. */
+	cursor:
+		url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16'%3E%3Crect x='4' y='2' width='8' height='12' fill='%231a9a1a' stroke='%23000000' stroke-width='1'/%3E%3Cline x1='2' y1='14' x2='14' y2='2' stroke='%2333ff33' stroke-width='2'/%3E%3C/svg%3E")
+			8 8,
+		not-allowed;
+	opacity: 0.55;
+}
+.compliance-btn.disabled:hover,
+.compliance-btn.disabled:focus {
+	background: none;
+	text-shadow: none;
+	box-shadow: none;
+	color: var(--green-dim);
+}
+
+/* Intrusion panel entry — glitchy flicker replaces the plain fade-in,
+   so the red takeover feels like a signal fighting its way in instead of
+   a gentle reveal. */
+.intrusion-panel.flicker {
+	animation: intrusionFlicker 0.55s steps(2, end) both;
+}
+@keyframes intrusionFlicker {
+	0% {
+		opacity: 0;
+		filter: brightness(2.6) contrast(1.4);
+		transform: translateX(-2px);
+	}
+	12% {
+		opacity: 0.9;
+		transform: translateX(3px);
+	}
+	22% {
+		opacity: 0.05;
+	}
+	36% {
+		opacity: 1;
+		transform: translateX(-1px);
+		filter: brightness(1.8);
+	}
+	48% {
+		opacity: 0.2;
+	}
+	62% {
+		opacity: 1;
+		transform: translateX(1px);
+		filter: none;
+	}
+	78% {
+		opacity: 0.6;
+	}
+	100% {
+		opacity: 1;
+		transform: none;
+		filter: none;
+	}
+}
+
+/* The short nav labels (SYS / DIR / REC / TRANS / COMP) are rendered
+   alongside the full labels so the swap is purely CSS. Desktop hides
+   them; the mobile media query hides the full label instead. */
+.nav-label-short {
+	display: none;
+}
+
+.fade-in {
+	animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}
+
+/* Phosphor bloom + chromatic aberration — layered text-shadows simulate the glow
+   of a CRT's phosphor, plus red/cyan fringes that a shader would produce. */
+.phosphor-trail {
+	text-shadow:
+		0 0 2px var(--green),
+		0 0 4px var(--green),
+		0 0 8px rgba(51, 255, 51, 0.35),
+		0.5px 0 0 rgba(255, 40, 40, 0.35),
+		-0.5px 0 0 rgba(40, 180, 255, 0.35);
+}
+
+/* Subtle global aberration on ALL screen content — edges of non-phosphor text. */
+.booted-layout,
+.intrusion-panel,
+.boot-scroll {
+	filter: drop-shadow(0.3px 0 0 rgba(255, 40, 40, 0.25)) drop-shadow(-0.3px 0 0 rgba(40, 180, 255, 0.25));
+}
+
+@keyframes alertBlink {
+	0%,
+	49% {
+		opacity: 1;
+	}
+	50%,
+	100% {
+		opacity: 0.35;
+	}
+}
+
+.crt-container.red-mode {
+	color: var(--red);
+}
+.crt-container.red-mode::before {
+	background: repeating-linear-gradient(
+		0deg,
+		rgba(0, 0, 0, 0.28) 0px,
+		rgba(0, 0, 0, 0.28) 1px,
+		rgba(255, 51, 51, 0.06) 1px,
+		rgba(255, 51, 51, 0.06) 3px
+	);
+}
+.crt-container.red-mode::after {
+	background: radial-gradient(ellipse at center, transparent 50%, rgba(40, 0, 0, 0.7) 100%);
+}
+.crt-container.red-mode .crt-roll {
+	background: linear-gradient(
+		to bottom,
+		transparent 0%,
+		rgba(255, 51, 51, 0.06) 40%,
+		rgba(255, 51, 51, 0.14) 50%,
+		rgba(255, 51, 51, 0.06) 60%,
+		transparent 100%
+	);
+}
+
+/* Red-themed scrollbar for the intrusion panel — matches the alert palette. */
+.crt-container.red-mode .intrusion-panel {
+	scrollbar-width: thin;
+	scrollbar-color: var(--red-dim) rgba(40, 0, 0, 0.4);
+}
+.crt-container.red-mode .intrusion-panel::-webkit-scrollbar {
+	width: 8px;
+}
+.crt-container.red-mode .intrusion-panel::-webkit-scrollbar-track {
+	background: rgba(40, 0, 0, 0.4);
+}
+.crt-container.red-mode .intrusion-panel::-webkit-scrollbar-thumb {
+	background: var(--red-dim);
+	border-radius: 2px;
+	box-shadow: 0 0 4px rgba(255, 51, 51, 0.5);
+}
+.crt-container.red-mode .intrusion-panel::-webkit-scrollbar-thumb:hover {
+	background: var(--red);
+}
+
+.intrusion-panel {
+	color: var(--red);
+	padding: 6px 0;
+}
+.intrusion-title {
+	font-size: 32px;
+	letter-spacing: 3px;
+	text-align: center;
+	animation: alertBlink 0.7s steps(2) infinite;
+	border: 2px double var(--red);
+	padding: 12px;
+	margin-bottom: 14px;
+	text-shadow:
+		0 0 3px var(--red),
+		0 0 6px var(--red-glow);
+}
+.intrusion-sub {
+	text-align: center;
+	font-size: 16px;
+	color: var(--red-dim);
+	margin-bottom: 16px;
+	letter-spacing: 1px;
+}
+.intrusion-box {
+	border: 1px solid var(--red);
+	padding: 10px 14px;
+	margin-bottom: 12px;
+	font-size: 18px;
+	line-height: 1.45;
+	background: rgba(30, 0, 0, 0.35);
+}
+.intrusion-box h3 {
+	color: var(--red);
+	font-size: 20px;
+	letter-spacing: 1px;
+	margin-bottom: 6px;
+	border-bottom: 1px dashed var(--red-dim);
+	padding-bottom: 4px;
+	font-weight: normal;
+}
+.intrusion-warn {
+	border-color: var(--red);
+	background: rgba(60, 0, 0, 0.45);
+}
+.intrusion-warn h3 {
+	color: #fff;
+}
+.redacted {
+	background: var(--red-dim);
+	color: var(--red-dim);
+	padding: 0 4px;
+	user-select: none;
+}
+.intrusion-close {
+	display: block;
+	margin: 18px auto 6px;
+	background: var(--red-dim);
+	border: 1px solid var(--red);
+	color: #fff;
+	font-family: "VT323", monospace;
+	font-size: 20px;
+	padding: 5px 14px;
+	cursor: pointer;
+	text-shadow: 0 0 3px var(--red);
+	box-shadow: 0 0 6px var(--red-glow);
+	letter-spacing: 2px;
+}
+.intrusion-close:hover,
+.intrusion-close:focus {
+	background: var(--red);
+	color: #000;
+	outline: none;
+}
+
+.mobile-controls {
+	display: none;
+}
+
+.nav-num {
+	margin-right: 6px;
+}
+
+/* Compliance form — checklist of regime statements. */
+.compliance-list {
+	list-style: none;
+	padding: 0;
+	margin: 8px 0 16px;
+}
+.compliance-list li {
+	display: flex;
+	align-items: flex-start;
+	gap: 10px;
+	padding: 6px 0;
+	font-size: 17px;
+	line-height: 1.45;
+}
+.compliance-tick {
+	flex-shrink: 0;
+	width: 22px;
+	text-align: center;
+	color: var(--green-bright);
+	font-weight: bold;
+}
+
+/* Progressive-fade "at this time." repetition glitch on COMPLIANCE submit. */
+.fade-step-1 {
+	opacity: 0.7;
+	padding-left: 20px;
+}
+.fade-step-2 {
+	opacity: 0.4;
+	padding-left: 40px;
+}
+
+/* Records / transmissions / directives entries — bordered box style. */
+.record-entry,
+.transmission-entry,
+.directive-entry {
+	border: 1px solid var(--green-dim);
+	padding: 10px 14px;
+	margin: 10px 0;
+	background: rgba(0, 20, 0, 0.25);
+}
+.entry-id {
+	color: var(--green-bright);
+	font-size: 18px;
+	letter-spacing: 1px;
+	margin-bottom: 4px;
+}
+.entry-meta {
+	font-size: 18px;
+	line-height: 1.5;
+}
+.entry-meta .label {
+	color: var(--green-mid);
+	margin-right: 6px;
+}
+.entry-note {
+	margin-top: 6px;
+	padding-top: 6px;
+	border-top: 1px dashed var(--green-dark);
+	color: var(--green-mid);
+	font-size: 18px;
+	line-height: 1.45;
+}
+.transmission-line {
+	display: block;
+	padding: 2px 0;
+	line-height: 1.5;
+}
+.transmission-voice {
+	color: var(--green-bright);
+	margin-right: 6px;
+}
+.transmission-end {
+	color: var(--green-mid);
+	font-size: 16px;
+	letter-spacing: 1px;
+	margin-top: 4px;
+}
+.transmission-new {
+	color: var(--green-bright);
+	letter-spacing: 1px;
+	margin-left: 6px;
+}
+
+/* Protocol Zero — shown after the visitor clicks [INITIATE PROTOCOL ZERO].
+   Full-screen black with dim green lines fading in one at a time. */
+.protocol-zero {
+	position: absolute;
+	inset: 0;
+	background: #000;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	color: var(--green);
+	font-size: 18px;
+	line-height: 1.8;
+	padding: 24px;
+	z-index: 500;
+}
+.protocol-zero-line {
+	white-space: pre;
+}
+.protocol-zero-cursor {
+	animation: pzBlink 0.6s steps(2) infinite;
+	margin-left: 2px;
+}
+@keyframes pzBlink {
+	0%,
+	49% {
+		opacity: 1;
+	}
+	50%,
+	100% {
+		opacity: 0;
+	}
+}
+
+/* Row between the footer hints and the copyright strip. Only appears
+   for flagged visitors. The link matches footer text so it reads as
+   "something the system left behind" rather than a UI button. */
+.protocol-zero-row {
+	display: flex;
+	justify-content: center;
+	padding: 4px 0;
+	font-size: 15px;
+	color: var(--green-dim);
+}
+.protocol-zero-link {
+	background: none;
+	border: none;
+	font-family: inherit;
+	font-size: 15px;
+	color: var(--green-dim);
+	padding: 0;
+	cursor: pointer;
+	letter-spacing: 1px;
+}
+.protocol-zero-link:hover,
+.protocol-zero-link:focus {
+	color: var(--green-bright);
+	outline: none;
+	text-shadow: 0 0 4px var(--green);
+}
+
+@media (max-width: 600px) {
+	/* Hide CRT bezel on mobile — naked terminal */
+	.crt-monitor {
+		padding: 0;
+		background: none;
+		min-height: 100vh;
+		display: block;
+	}
+	.crt-housing {
+		padding: 0;
+		background: none;
+		box-shadow: none;
+		border-radius: 0;
+		max-width: 100%;
+	}
+	.crt-screen-frame {
+		padding: 0;
+		border-radius: 0;
+		box-shadow: none;
+	}
+	.crt-screen-frame::after {
+		display: none;
+	}
+	.crt-label,
+	.crt-led {
+		display: none;
+	}
+
+	/* Revert all sizes to original on mobile */
+	.crt-container {
+		font-size: 14px;
+		min-height: 100vh;
+		height: auto;
+		max-height: none;
+		aspect-ratio: auto;
+		border-radius: 0;
+		/* Desktop keeps `overflow: hidden` — on mobile, hidden still creates a
+		   scroll container, so focus() on a nav item could shift the whole
+		   terminal sideways (the "compliance button off-screen" bug).
+		   `clip` clips without being scrollable. */
+		overflow: clip;
+	}
+	.crt-screen-frame {
+		transform: none;
+	}
+	.screen-content {
+		max-width: 100%;
+		padding: 8px 12px 88px 12px;
+		height: auto;
+		display: block;
+		overflow: visible;
+	}
+	.booted-layout,
+	.intrusion-panel,
+	.boot-scroll {
+		height: auto;
+		overflow: visible;
+		display: block;
+		filter: none;
+	}
+	.booted-layout > .content-area {
+		overflow: visible;
+		min-height: 300px;
+		flex: none;
+	}
+	.top-bar {
+		font-size: 11px;
+		padding: 6px 0;
+		margin-bottom: 4px;
+	}
+	.nav-bar {
+		gap: 2px;
+		padding: 4px 0;
+		margin-bottom: 6px;
+	}
+	.nav-item {
+		line-height: 1.1;
+		padding: 4px 2px;
+		font-size: 13px;
+	}
+	.nav-num {
+		display: block;
+		margin-right: 0;
+		font-size: 12px;
+		color: var(--green-dim);
+	}
+	.nav-item.active .nav-num {
+		color: #000;
+	}
+	/* Swap the full-word label for the 3-5 letter abbreviation on mobile,
+	   and bump the font since the text is shorter. */
+	.nav-label {
+		display: none;
+	}
+	.nav-label-short {
+		display: block;
+		font-size: 17px;
+		letter-spacing: 1px;
+	}
+
+	/* SYSTEM stats: desktop uses a fixed 280px label column. On mobile the
+	   label column eats most of the screen and values squeeze. Switch to a
+	   space-between layout so each row stretches the full width. */
+	.stat-row {
+		justify-content: space-between;
+		gap: 12px;
+	}
+	.stat-label {
+		flex: 0 1 auto;
+	}
+
+	/* The text-based dividers (═ × 56) and redacted blocks (█ × 45) are
+	   wider than narrow screens. Clip them so they don't force horizontal
+	   scroll — cutting mid-character is invisible because every char is
+	   identical. */
+	.divider,
+	.directive-redacted {
+		max-width: 100%;
+		overflow: hidden;
+		white-space: nowrap;
+		letter-spacing: 0;
+	}
+
+	/* Protocol Zero is position: absolute + inset: 0 — that needs a sized
+	   parent. Mobile uses auto-height containers, so the overlay collapsed
+	   to the height of its own text. Pin to the viewport instead. */
+	.protocol-zero {
+		position: fixed;
+		inset: 0;
+		z-index: 300;
+		min-height: 100vh;
+	}
+	.content-area {
+		padding: 10px 14px;
+		min-height: 300px;
+	}
+	.content-header {
+		font-size: 15px;
+		padding-bottom: 4px;
+		margin-bottom: 8px;
+	}
+	.footer-bar {
+		font-size: 10px;
+		padding: 6px 0;
+		margin-top: 6px;
+		gap: 4px;
+	}
+	.boot-line {
+		font-size: 13px;
+	}
+	.compliance-list li {
+		font-size: 13px;
+	}
+	.entry-id,
+	.entry-meta,
+	.entry-note {
+		font-size: 13px;
+	}
+
+	.mobile-controls {
+		display: flex;
+		position: fixed;
+		bottom: 0;
+		left: 0;
+		right: 0;
+		gap: 4px;
+		padding: 8px;
+		background: var(--bg);
+		border-top: 2px double var(--green-dim);
+		z-index: 200;
+	}
+	/* Phosphor-grid mask over the whole button bar — mirrors desktop .crt-mask */
+	.mobile-controls::after {
+		content: "";
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='3' height='3'%3E%3Crect width='1' height='3' fill='%23ff0000'/%3E%3Crect x='1' width='1' height='3' fill='%2300ff00'/%3E%3Crect x='2' width='1' height='3' fill='%230000ff'/%3E%3C/svg%3E");
+		background-size: 3px 3px;
+		background-repeat: repeat;
+		mix-blend-mode: multiply;
+		opacity: 0.18;
+		pointer-events: none;
+		image-rendering: pixelated;
+	}
+	.mobile-ctrl-btn {
+		position: relative;
+		flex: 1;
+		background: var(--green-dark);
+		border: 1px solid var(--green);
+		color: var(--green-bright);
+		font-family: "VT323", monospace;
+		font-size: 22px;
+		padding: 12px 0;
+		cursor: pointer;
+		text-shadow:
+			0 0 2px var(--green),
+			0 0 6px rgba(51, 255, 51, 0.55),
+			0.5px 0 0 rgba(255, 40, 40, 0.45),
+			-0.5px 0 0 rgba(40, 180, 255, 0.45);
+		box-shadow: inset 0 0 6px var(--glow);
+		outline: none;
+		-webkit-tap-highlight-color: transparent;
+	}
+	.mobile-ctrl-btn:active {
+		background: var(--green-dim);
+		color: #000;
+		text-shadow: none;
+	}
+	.mobile-ctrl-enter {
+		flex: 1.4;
+		font-size: 18px;
+		letter-spacing: 2px;
+	}
+	/* Fullscreen toggle sits at the far right of the mobile button bar.
+	   Slightly narrower than the arrows so ENTER keeps visual weight. */
+	.mobile-ctrl-fs {
+		flex: 0.8;
+		font-size: 22px;
+		line-height: 1;
+	}
+	.mobile-ctrl-fs--active {
+		background: var(--green);
+		color: #000;
+		text-shadow: none;
+	}
+}
