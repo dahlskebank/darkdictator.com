@@ -934,6 +934,23 @@ export default function DarkDictator() {
 	useEffect(() => {
 		if (!booted) return;
 		const handler = (e) => {
+			// During intrusion, section nav is meaningless (the booted-layout
+			// is hidden). Block nav keys with a deny tone so the user gets
+			// audio feedback instead of a silent no-op. Scroll keys fall
+			// through and no-op safely (contentRef is null during intrusion).
+			// ESC is handled by the secret keyBuffer effect above.
+			if (secretOpen) {
+				const isNavKey =
+					(e.key >= "1" && e.key <= String(SECTIONS.length)) ||
+					e.key === "ArrowLeft" ||
+					e.key === "ArrowRight" ||
+					e.key === "Enter";
+				if (isNavKey) {
+					playDeny();
+					e.preventDefault();
+					return;
+				}
+			}
 			if (e.key >= "1" && e.key <= String(SECTIONS.length)) {
 				const idx = parseInt(e.key, 10) - 1;
 				navigate(SECTIONS[idx].id, idx);
@@ -984,7 +1001,7 @@ export default function DarkDictator() {
 		};
 		window.addEventListener("keydown", handler);
 		return () => window.removeEventListener("keydown", handler);
-	}, [booted, navigate, navPrev, navNext, navSelect]);
+	}, [booted, navigate, navPrev, navNext, navSelect, secretOpen]);
 
 	useEffect(() => {
 		if (booted) {
@@ -1130,17 +1147,31 @@ export default function DarkDictator() {
 
 						{booted && (
 							<div className="mobile-controls" role="group" aria-label="Navigation controls">
-								<button className="mobile-ctrl-btn" onClick={navPrev} aria-label="Previous">
+								{/* Section nav is denied during intrusion — same pattern as
+								    .compliance-btn.disabled: dimmed, aria-disabled, tap plays
+								    playDeny instead of navigating. Layout stays stable. */}
+								<button
+									className={`mobile-ctrl-btn${secretOpen ? " mobile-ctrl-btn--disabled" : ""}`}
+									onClick={secretOpen ? playDeny : navPrev}
+									aria-label="Previous"
+									aria-disabled={secretOpen ? "true" : undefined}
+								>
 									◄
 								</button>
 								<button
-									className="mobile-ctrl-btn mobile-ctrl-enter"
-									onClick={navSelect}
+									className={`mobile-ctrl-btn mobile-ctrl-enter${secretOpen ? " mobile-ctrl-btn--disabled" : ""}`}
+									onClick={secretOpen ? playDeny : navSelect}
 									aria-label="Select"
+									aria-disabled={secretOpen ? "true" : undefined}
 								>
 									ENTER
 								</button>
-								<button className="mobile-ctrl-btn" onClick={navNext} aria-label="Next">
+								<button
+									className={`mobile-ctrl-btn${secretOpen ? " mobile-ctrl-btn--disabled" : ""}`}
+									onClick={secretOpen ? playDeny : navNext}
+									aria-label="Next"
+									aria-disabled={secretOpen ? "true" : undefined}
+								>
 									►
 								</button>
 								<button

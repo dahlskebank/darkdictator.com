@@ -243,7 +243,7 @@ export const DIRECTIVES_PAGE = {
 		},
 		{
 			id: "0091",
-			effective: "2086.10.08",
+			effective: "2078.12.18",
 			body:
 				"Verbal conduct standards are now enforced via " +
 				"automated monitoring in all public and private " +

@@ -109,6 +109,21 @@ body {
 	transform-origin: center top;
 }
 
+/* Red-mode bezel bloom — when the intrusion panel is open, the bezel
+   itself glows red into the surrounding cabinet plastic. Uses :has() to
+   react to the inner .crt-container's class without restructuring JSX.
+   No transition: the red appears instantly with the alert. Default
+   (green) state has no outer bloom — the dark bezel reads cleaner. */
+.crt-screen-frame:has(.crt-container.red-mode) {
+	box-shadow:
+		inset 0 0 48px rgba(0, 0, 0, 0.95),
+		inset 0 0 8px rgba(0, 0, 0, 1),
+		0 1px 0 rgba(255, 255, 255, 0.1),
+		0 -1px 0 rgba(0, 0, 0, 0.3),
+		0 0 28px rgba(255, 51, 51, 0.32),
+		0 0 70px rgba(255, 51, 51, 0.18);
+}
+
 .crt-screen-frame::after {
 	content: "";
 	position: absolute;
@@ -1208,6 +1223,22 @@ body {
 }
 
 @media (max-width: 600px) {
+	/* Mobile page-level scrollbar — desktop styles the .content-area
+	   scrollbar, but on mobile the document root scrolls instead, so
+	   the OS gray scrollbar shows by default. Apply standard scrollbar
+	   properties to <html>; use :has() to swap to red when the inner
+	   .crt-container is in red-mode (intrusion panel open). If Android
+	   Chrome doesn't honor these standard properties, fall back to the
+	   @supports not selector(::-webkit-scrollbar) wrapper Daniel uses
+	   in his other projects. */
+	html {
+		scrollbar-width: thin;
+		scrollbar-color: var(--green-dim) rgba(0, 20, 0, 0.3);
+	}
+	html:has(.crt-container.red-mode) {
+		scrollbar-color: var(--red-dim) rgba(40, 0, 0, 0.4);
+	}
+
 	/* Hide CRT bezel on mobile — naked terminal */
 	.crt-monitor {
 		padding: 0;
@@ -1254,7 +1285,11 @@ body {
 	}
 	.screen-content {
 		max-width: 100%;
-		padding: 8px 12px 88px 12px;
+		/* Bottom padding clears the fixed .mobile-controls bar. The bar grew
+		   by env(safe-area-inset-bottom) when we added viewport-fit=cover,
+		   so this padding has to grow by the same amount or the copyright
+		   line gets eaten by the buttons. */
+		padding: 8px 12px calc(88px + env(safe-area-inset-bottom)) 12px;
 		height: auto;
 		display: block;
 		overflow: visible;
@@ -1379,6 +1414,11 @@ body {
 		right: 0;
 		gap: 4px;
 		padding: 8px;
+		/* Extend the bar's bg under the OS gesture pill so the gray system-nav
+		   seam disappears. Pairs with viewport-fit=cover on the viewport meta —
+		   the page paints edge-to-edge, this padding keeps the buttons above
+		   the gesture area while the green-dark bg fills the safe-area inset. */
+		padding-bottom: calc(8px + env(safe-area-inset-bottom));
 		background: var(--bg);
 		border-top: 2px double var(--green-dim);
 		z-index: 200;
@@ -1439,5 +1479,47 @@ body {
 		background: var(--green);
 		color: #000;
 		text-shadow: none;
+	}
+
+	/* Red-mode swap for the floating mobile button bar. During an intrusion
+	   (.crt-container.red-mode), this is the only piece of regime-chrome
+	   still visible on mobile (the booted-layout is replaced by the
+	   intrusion panel). Leaving it green broke the takeover illusion.
+	   Bar bg stays var(--bg) so the device still feels grounded; only the
+	   border, button frames, text, and active state shift to red palette.
+	   The chromatic-aberration red+cyan fringes in text-shadow stay — they
+	   represent CRT physics, not theme color. */
+	.crt-container.red-mode .mobile-controls {
+		border-top: 2px double var(--red-dim);
+	}
+	.crt-container.red-mode .mobile-ctrl-btn {
+		background: rgba(40, 0, 0, 0.55);
+		border: 1px solid var(--red);
+		color: var(--red);
+		text-shadow:
+			0 0 2px var(--red),
+			0 0 6px var(--red-glow),
+			0.5px 0 0 rgba(255, 40, 40, 0.45),
+			-0.5px 0 0 rgba(40, 180, 255, 0.45);
+		box-shadow: inset 0 0 6px var(--red-glow);
+	}
+	.crt-container.red-mode .mobile-ctrl-btn:active {
+		background: var(--red-dim);
+		color: #000;
+		text-shadow: none;
+	}
+	.crt-container.red-mode .mobile-ctrl-fs--active {
+		background: var(--red);
+		color: #000;
+		text-shadow: none;
+	}
+	/* During intrusion, the three nav buttons (◄ ENTER ►) navigate sections
+	   that aren't rendered — they exist but they're denied. Mirror the
+	   .compliance-btn.disabled pattern: visually dim, aria-disabled, tap
+	   plays the deny tone (wired in App.jsx). Layout stays stable between
+	   modes — no buttons disappear, just go inert. The fullscreen button
+	   keeps working (OS-level, still useful). */
+	.mobile-ctrl-btn--disabled {
+		opacity: 0.4;
 	}
 }
