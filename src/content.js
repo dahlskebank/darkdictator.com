@@ -12,10 +12,34 @@
 // `label` is what appears on the button. `title` is the page header.
 export const SECTIONS = [
 	{ id: "system", num: "[1]", label: "SYSTEM", labelShort: "SYS", title: "SYSTEM // STATE NETWORK STATUS" },
-	{ id: "directives", num: "[2]", label: "DIRECTIVES", labelShort: "DIR", title: "DIRECTIVES // ACTIVE STATE ORDERS" },
-	{ id: "records", num: "[3]", label: "RECORDS", labelShort: "REC", title: "RECORDS // BUREAU OF POPULATION MANAGEMENT" },
-	{ id: "transmissions", num: "[4]", label: "TRANSMISSIONS", labelShort: "TRANS", title: "TRANSMISSIONS // INTERCEPTED COMMUNICATIONS" },
-	{ id: "compliance", num: "[5]", label: "COMPLIANCE", labelShort: "COMP", title: "COMPLIANCE // VERIFICATION FORM CV-12" },
+	{
+		id: "directives",
+		num: "[2]",
+		label: "DIRECTIVES",
+		labelShort: "DIR",
+		title: "DIRECTIVES // ACTIVE STATE ORDERS",
+	},
+	{
+		id: "records",
+		num: "[3]",
+		label: "RECORDS",
+		labelShort: "REC",
+		title: "RECORDS // BUREAU OF POPULATION MANAGEMENT",
+	},
+	{
+		id: "transmissions",
+		num: "[4]",
+		label: "TRANSMISSIONS",
+		labelShort: "TRANS",
+		title: "TRANSMISSIONS // INTERCEPTED COMMUNICATIONS",
+	},
+	{
+		id: "compliance",
+		num: "[5]",
+		label: "COMPLIANCE",
+		labelShort: "COMP",
+		title: "COMPLIANCE // VERIFICATION FORM CV-12",
+	},
 ];
 
 // ─── Top status line (rotates randomly on load) ──────────────────────
@@ -53,13 +77,13 @@ export const TOP_BAR = {
 	// long-pressing it (~1.8s) opens the secret page (equivalent to typing
 	// OBEY / 1984 on desktop).
 	brandIcon: "◉",
-	brandText: " SoAP TERMINAL v1.0.1",
+	brandText: " SoAP TERMINAL v1.0.2",
 	node: "NODE 13",
 	// The third slot displays the current time, rendered live in App.jsx
 };
 
 // How long (ms) the ◉ must be pressed to trigger the secret page on mobile.
-export const SECRET_LONGPRESS_MS = 1800;
+export const SECRET_LONGPRESS_MS = 500;
 
 // ─── Footer ──────────────────────────────────────────────────────────
 export const FOOTER = {
@@ -219,7 +243,7 @@ export const DIRECTIVES_PAGE = {
 		},
 		{
 			id: "0091",
-			effective: "2089.04.20",
+			effective: "2086.10.08",
 			body:
 				"Verbal conduct standards are now enforced via " +
 				"automated monitoring in all public and private " +
@@ -240,6 +264,16 @@ export const RECORDS_PAGE = {
 		"Clearance Level 4 or above.",
 	entries: [
 		{
+			id: "LIB-0962-K",
+			fields: [
+				["NAME", "PARTRIDGE, E."],
+				["OCCUPATION", "CLERIC — FIRST CLASS"],
+				["STATUS", "SENSE OFFENSE — TERMINATED"],
+				["LAST UPDATE", "2074.01.30"],
+			],
+			note: "Contraband poetry recovered at site. Volume destroyed per Directive 0017.",
+		},
+		{
 			id: "MCO-4471-B",
 			fields: [
 				["NAME", "████████, JEROME"],
@@ -249,16 +283,6 @@ export const RECORDS_PAGE = {
 				["LAST UPDATE", "2070.11.06"],
 			],
 			note: "Subject operating under assumed genetic profile. Investigation transferred to Genetic Fraud Division.",
-		},
-		{
-			id: "LIB-0962-K",
-			fields: [
-				["NAME", "PARTRIDGE, E."],
-				["OCCUPATION", "CLERIC — FIRST CLASS"],
-				["STATUS", "SENSE OFFENSE — TERMINATED"],
-				["LAST UPDATE", "2074.01.30"],
-			],
-			note: "Contraband poetry recovered at site. Volume destroyed per Directive 0017.",
 		},
 		{
 			id: "MCO-8834-J",

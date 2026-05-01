@@ -382,6 +382,46 @@ body {
 	overflow: hidden;
 }
 
+/* CRT channel-change / power-cycle collapse — vertical squash to a 1px line
+   with a brightness flash, then a slight overshoot bounce back to normal.
+   Borrowed from the classic CRT visual primitive: when the electron beam
+   loses sync, the picture compresses to a horizontal line before rebuilding.
+   Applied to .screen-content only so the scanlines/mask/noise/vignette
+   overlays on .crt-container stay locked (they belong to the tube, not the
+   signal). The content swap happens at the trough of the animation (~200ms
+   in JS), so the bounce-back reveals the new section. */
+@keyframes crtCollapse {
+	0% {
+		transform: scaleY(1);
+		filter: brightness(1.2);
+	}
+	20% {
+		transform: scaleY(0.02);
+		filter: brightness(3) blur(1px);
+	}
+	55% {
+		transform: scaleY(0.02);
+		filter: brightness(0.1);
+	}
+	75% {
+		transform: scaleY(1.04);
+		filter: brightness(1.4);
+	}
+	90% {
+		transform: scaleY(0.97);
+		filter: brightness(0.9);
+	}
+	100% {
+		transform: scaleY(1);
+		filter: brightness(1);
+	}
+}
+.screen-content.crt-collapsing {
+	animation: crtCollapse 0.35s ease forwards;
+	transform-origin: center center;
+	will-change: transform, filter;
+}
+
 /* Top-bar, nav, footer, copyright all lock in place; only .content-area scrolls. */
 .booted-layout {
 	display: flex;
@@ -600,14 +640,18 @@ body {
 	margin: 0;
 	cursor: inherit;
 	letter-spacing: inherit;
-	transition: color 0.2s ease, text-shadow 0.2s ease;
+	transition:
+		color 0.2s ease,
+		text-shadow 0.2s ease;
 	-webkit-touch-callout: none;
 	-webkit-user-select: none;
 	user-select: none;
 }
 .copyright-year--pressing {
 	color: var(--green-bright);
-	text-shadow: 0 0 4px var(--green), 0 0 10px var(--glow);
+	text-shadow:
+		0 0 4px var(--green),
+		0 0 10px var(--glow);
 }
 
 /* Intrusion panel extras */
@@ -644,7 +688,10 @@ body {
 	display: inline-block;
 	cursor: inherit;
 	color: var(--green-dim);
-	transition: color 0.2s ease, text-shadow 0.2s ease, transform 0.2s ease;
+	transition:
+		color 0.2s ease,
+		text-shadow 0.2s ease,
+		transform 0.2s ease;
 	/* Block the iOS long-press callout (copy / share) which would
 	   otherwise appear and interrupt the hold. */
 	-webkit-touch-callout: none;
@@ -653,12 +700,20 @@ body {
 }
 .brand-icon--pressing {
 	color: var(--green-bright);
-	text-shadow: 0 0 4px var(--green), 0 0 10px var(--glow);
-	animation: brandPress 1.8s linear forwards;
+	text-shadow:
+		0 0 4px var(--green),
+		0 0 10px var(--glow);
+	animation: brandPress 0.5s linear forwards;
 }
 @keyframes brandPress {
-	0%   { transform: scale(1);    filter: brightness(1); }
-	100% { transform: scale(1.25); filter: brightness(1.6); }
+	0% {
+		transform: scale(1);
+		filter: brightness(1);
+	}
+	100% {
+		transform: scale(1.25);
+		filter: brightness(1.6);
+	}
 }
 .top-bar > :first-child {
 	justify-self: start;
@@ -1218,7 +1273,12 @@ body {
 		flex: none;
 	}
 	.top-bar {
-		font-size: 11px;
+		/* Fluid scale: 12px floor (320px viewport), grows with viewport, caps
+		   at 15px so the handoff to desktop's 17px at the 600px breakpoint
+		   isn't a jump. The grid template is 1fr auto 1fr — no wrapping —
+		   so the floor matters: 12px keeps the brand+version, NODE, and time
+		   from clipping on the narrowest phones. */
+		font-size: clamp(12px, 3.4vw, 15px);
 		padding: 6px 0;
 		margin-bottom: 4px;
 	}

@@ -737,6 +737,10 @@ export default function DarkDictator() {
 	const [focusIdx, setFocusIdx] = useState(0);
 	const [showContent, setShowContent] = useState(false);
 	const [secretOpen, setSecretOpen] = useState(false);
+	// CRT-collapse animation flag. Set true at the start of nav/reset, drives
+	// the .crt-collapsing class on .screen-content. Cleared after the full
+	// 450ms animation. The actual content swap fires at the 200ms trough.
+	const [collapsing, setCollapsing] = useState(false);
 	const [flagged, setFlagged] = useState(() => isSecretAccessed());
 	const [pageViews, setPageViews] = useState(() => getPageViews());
 	const [protocolZero, setProtocolZero] = useState(false);
@@ -774,17 +778,24 @@ export default function DarkDictator() {
 
 	const navigate = useCallback((id, idx) => {
 		playClank();
+		// Trigger the CRT collapse, swap content at the trough (~200ms),
+		// clear the class after the full 450ms ease so the bounce-back reveal
+		// completes before the screen-content goes back to its plain state.
+		setCollapsing(true);
 		setShowContent(false);
-		setActiveSection(id);
-		setFocusIdx(idx);
-		const n = incPageViews();
-		setPageViews(n);
-		const pool = isSecretAccessed() ? STATUS_PHRASES_FLAGGED : STATUS_PHRASES;
-		setStatusPhrase(pool[Math.floor(Math.random() * pool.length)]);
-		// Always land at the top of the new section, not wherever the previous
-		// page was scrolled to.
-		contentRef.current?.scrollTo({ top: 0 });
-		setTimeout(() => setShowContent(true), 100);
+		setTimeout(() => {
+			setActiveSection(id);
+			setFocusIdx(idx);
+			const n = incPageViews();
+			setPageViews(n);
+			const pool = isSecretAccessed() ? STATUS_PHRASES_FLAGGED : STATUS_PHRASES;
+			setStatusPhrase(pool[Math.floor(Math.random() * pool.length)]);
+			// Always land at the top of the new section, not wherever the previous
+			// page was scrolled to.
+			contentRef.current?.scrollTo({ top: 0 });
+			setShowContent(true);
+		}, 150);
+		setTimeout(() => setCollapsing(false), 350);
 	}, []);
 
 	const navPrev = useCallback(() => {
@@ -811,12 +822,20 @@ export default function DarkDictator() {
 
 	const resetTerminal = useCallback(() => {
 		playDeny();
-		setBooted(false);
-		setActiveSection(SECTIONS[0].id);
-		setFocusIdx(0);
-		setShowContent(false);
-		setSecretOpen(false);
-		keyBuffer.current = "";
+		// Same collapse-then-swap pattern as navigation. The picture squashes
+		// to a line, the booted layout unmounts at the trough, and the boot
+		// sequence becomes visible during the bounce-back — sells "real
+		// power-cycle" rather than "instant snap to boot".
+		setCollapsing(true);
+		setTimeout(() => {
+			setBooted(false);
+			setActiveSection(SECTIONS[0].id);
+			setFocusIdx(0);
+			setShowContent(false);
+			setSecretOpen(false);
+			keyBuffer.current = "";
+		}, 150);
+		setTimeout(() => setCollapsing(false), 350);
 	}, []);
 
 	const initiateProtocolZero = useCallback(() => {
@@ -986,7 +1005,7 @@ export default function DarkDictator() {
 						<div className="crt-mask" aria-hidden="true"></div>
 						<div className="crt-noise" aria-hidden="true"></div>
 
-						<div className="screen-content">
+						<div className={`screen-content${collapsing ? " crt-collapsing" : ""}`}>
 							{protocolZero ? (
 								<ProtocolZero />
 							) : secretOpen ? (
